@@ -60,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
         String[] list = ringtoneFileDir.list();
         if (list != null && list.length > 0) {
             for (String s : list) {
-                Log.d(TAG, "s=" + s);
+                Log.d(TAG, "cache file=" + s);
                 fileList.add(s);
             }
         }
@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
             int currentPosition = cursor.getPosition();
             Uri ringtongUri = manager.getRingtoneUri(currentPosition);
             String title = cursor.getString(RingtoneManager.TITLE_COLUMN_INDEX);
-            Log.d(TAG, "title=" + title + "ringtongUri=" + ringtongUri);
+            Log.d(TAG, "title=" + title + " \n ringtoneUri=" + ringtongUri);
         }
         cursor.close();
     }
@@ -215,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
             if (cursor.moveToFirst()) {
                 deleteId = cursor.getString(cursor.getColumnIndex("_id"));
             }
-            //LogTool.e("AGameRing", "deleteId:" + deleteId);
+            Log.e(TAG, "deleteId:" + deleteId);
             context.getContentResolver().delete(uri, MediaStore.MediaColumns.DATA + "=\"" + ringtoneFile.getAbsolutePath() + "\"", null);
             newUri = context.getContentResolver().insert(uri, values);
             cursor.close();
@@ -225,7 +225,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (newUri != null) {
             String uriPath = getFilePathFromContentUri(newUri, getContentResolver());
-            Log.d(TAG, "setRingtone uriPath: " + uriPath + " ,newUri=" + newUri);
+            Log.d(TAG, "setRingtone uriPath: " + uriPath + "\n ,newUri=" + newUri);
 
             String ringtoneId = "";
             String notificationId = "";
