@@ -177,83 +177,6 @@ public class MainActivity extends AppCompatActivity {
 
 
     /**
-     * 适配android q以上版本  android 9
-     *
-     * @param ringtoneFilePath ringtoneFilePath
-     * @param type             type
-     */
-    private void setRingtoneAndroidQ(String ringtoneFilePath, int type) {
-        File ringtoneFile = new File(ringtoneFilePath);
-        Log.d(TAG, "---setRingtoneAndroidQ---" + ringtoneFile.getPath());
-        ContentValues values = new ContentValues();
-        values.put(MediaStore.Audio.Media.DISPLAY_NAME, getRingFileName());
-        values.put(MediaStore.Audio.Media.MIME_TYPE, "audio/x-mpeg");
-        values.put(MediaStore.Audio.Media.TITLE, getRingFileName());
-        values.put(MediaStore.Audio.Media.RELATIVE_PATH, "Music/test");
-        values.put(MediaStore.Audio.Media.IS_RINGTONE, true);
-        values.put(MediaStore.Audio.Media.IS_NOTIFICATION, true);
-        values.put(MediaStore.Audio.Media.IS_ALARM, true);
-        values.put(MediaStore.Audio.Media.IS_MUSIC, true);
-
-        Uri external = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;//MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-        ContentResolver resolver = getContentResolver();
-
-        Uri insertUri = resolver.insert(external, values);
-
-        Log.d(TAG, "insertUri: " + insertUri);
-
-        String uriPath = getFilePathFromContentUri(insertUri, getContentResolver());
-        Log.d(TAG, "setRingtoneAndroidQ uriPath: " + uriPath);
-
-
-        OutputStream os = null;
-        FileInputStream inputStream = null;
-
-        if (insertUri != null) {
-            try {
-                os = resolver.openOutputStream(insertUri);
-                if (os != null) {
-                    inputStream = new FileInputStream(ringtoneFile);
-                    byte[] bytes = new byte[1024];
-                    int len = 0;
-                    while ((len = inputStream.read(bytes)) != -1) {
-                        os.write(bytes, 0, len);
-                    }
-                    inputStream.close();
-                    os.close();
-                }
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-        }
-        RingtoneManager.setActualDefaultRingtoneUri(this, type, insertUri);
-        Log.d(TAG, "insertUri: " + insertUri);
-        Toast.makeText(this, "铃声设置完成", Toast.LENGTH_SHORT).show();
-    }
-
-    private String getFilePathFromContentUri(Uri selectedVideoUri, ContentResolver contentResolver) {
-        String filePath;
-
-        String[] filePathColumn = {MediaStore.MediaColumns.DATA};
-
-        Cursor cursor = contentResolver.query(selectedVideoUri, filePathColumn, null, null, null);
-
-        cursor.moveToFirst();
-
-        int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-
-        filePath = cursor.getString(columnIndex);
-
-        cursor.close();
-
-        return filePath;
-
-    }
-
-    /**
      * 设置铃声
      * <p>
      * type RingtoneManager.TYPE_RINGTONE 来电铃声
@@ -265,13 +188,17 @@ public class MainActivity extends AppCompatActivity {
      */
     public void setRingtone(Context context, int type, String path, String title) {
 
-        Uri oldRingtoneUri = RingtoneManager.getActualDefaultRingtoneUri(context, RingtoneManager.TYPE_RINGTONE); //系统当前  通知铃声
+        Uri oldRingtoneUri = RingtoneManager.getActualDefaultRingtoneUri(context, RingtoneManager.TYPE_RINGTONE); //系统当前  电话铃声
         Uri oldNotification = RingtoneManager.getActualDefaultRingtoneUri(context, RingtoneManager.TYPE_NOTIFICATION); //系统当前  通知铃声
         Uri oldAlarm = RingtoneManager.getActualDefaultRingtoneUri(context, RingtoneManager.TYPE_ALARM); //系统当前  闹钟铃声
+        Log.d(TAG, "getActualDefaultRingtoneUri, oldRingtoneUri=" + oldRingtoneUri);
+        Log.d(TAG, "getActualDefaultRingtoneUri, oldNotification=" + oldNotification);
+        Log.d(TAG, "getActualDefaultRingtoneUri, oldAlarm=" + oldAlarm);
 
-        File sdfile = new File(path);
+
+        File ringtoneFile = new File(path);
         ContentValues values = new ContentValues();
-        values.put(MediaStore.MediaColumns.DATA, sdfile.getAbsolutePath());
+        values.put(MediaStore.MediaColumns.DATA, ringtoneFile.getAbsolutePath());
         values.put(MediaStore.MediaColumns.TITLE, title);
         values.put(MediaStore.MediaColumns.MIME_TYPE, "audio/mp3");
         values.put(MediaStore.Audio.Media.IS_RINGTONE, true);
@@ -279,7 +206,8 @@ public class MainActivity extends AppCompatActivity {
         values.put(MediaStore.Audio.Media.IS_ALARM, true);
         values.put(MediaStore.Audio.Media.IS_MUSIC, true);
 
-        Uri uri = MediaStore.Audio.Media.getContentUriForPath(sdfile.getAbsolutePath());
+        Uri uri = MediaStore.Audio.Media.getContentUriForPath(ringtoneFile.getAbsolutePath());
+        Log.d(TAG, "getContentUriForPath, uri=" + uri);
         Uri newUri = null;
         String deleteId = "";
         try {
@@ -288,21 +216,22 @@ public class MainActivity extends AppCompatActivity {
                 deleteId = cursor.getString(cursor.getColumnIndex("_id"));
             }
             //LogTool.e("AGameRing", "deleteId:" + deleteId);
-            Log.d(TAG, "checkFilePermission");
-            context.getContentResolver().delete(uri, MediaStore.MediaColumns.DATA + "=\"" + sdfile.getAbsolutePath() + "\"", null);
+            context.getContentResolver().delete(uri, MediaStore.MediaColumns.DATA + "=\"" + ringtoneFile.getAbsolutePath() + "\"", null);
             newUri = context.getContentResolver().insert(uri, values);
+            cursor.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
-        String uriPaht = getFilePathFromContentUri(newUri, getContentResolver());
-        Log.d(TAG, "setRingtone uriPaht: " + uriPaht);
-        if (newUri != null) {
 
-            String ringStoneId = "";
+        if (newUri != null) {
+            String uriPath = getFilePathFromContentUri(newUri, getContentResolver());
+            Log.d(TAG, "setRingtone uriPath: " + uriPath + " ,newUri=" + newUri);
+
+            String ringtoneId = "";
             String notificationId = "";
             String alarmId = "";
             if (null != oldRingtoneUri) {
-                ringStoneId = oldRingtoneUri.getLastPathSegment();
+                ringtoneId = oldRingtoneUri.getLastPathSegment();
             }
 
             if (null != oldNotification) {
@@ -317,7 +246,7 @@ public class MainActivity extends AppCompatActivity {
             Uri setNotificationUri;
             Uri setAlarmUri;
 
-            if (type == RingtoneManager.TYPE_RINGTONE || ringStoneId.equals(deleteId)) {
+            if (type == RingtoneManager.TYPE_RINGTONE || ringtoneId.equals(deleteId)) {
                 setRingStoneUri = newUri;
             } else {
                 setRingStoneUri = oldRingtoneUri;
@@ -392,4 +321,81 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+
+    /**
+     * 适配android q以上版本  android 9
+     *
+     * @param ringtoneFilePath ringtoneFilePath
+     * @param type             type
+     */
+    private void setRingtoneAndroidQ(String ringtoneFilePath, int type) {
+        File ringtoneFile = new File(ringtoneFilePath);
+        Log.d(TAG, "---setRingtoneAndroidQ---" + ringtoneFile.getPath());
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Audio.Media.DISPLAY_NAME, getRingFileName());
+        values.put(MediaStore.Audio.Media.MIME_TYPE, "audio/x-mpeg");
+        values.put(MediaStore.Audio.Media.TITLE, getRingFileName());
+        values.put(MediaStore.Audio.Media.RELATIVE_PATH, "Music/test");
+        values.put(MediaStore.Audio.Media.IS_RINGTONE, true);
+        values.put(MediaStore.Audio.Media.IS_NOTIFICATION, true);
+        values.put(MediaStore.Audio.Media.IS_ALARM, true);
+        values.put(MediaStore.Audio.Media.IS_MUSIC, true);
+
+        Uri external = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;//MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+        ContentResolver resolver = getContentResolver();
+
+        Uri insertUri = resolver.insert(external, values);
+
+        Log.d(TAG, "insertUri: " + insertUri);
+
+        String uriPath = getFilePathFromContentUri(insertUri, getContentResolver());
+        Log.d(TAG, "setRingtoneAndroidQ uriPath: " + uriPath);
+
+
+        OutputStream os = null;
+        FileInputStream inputStream = null;
+
+        if (insertUri != null) {
+            try {
+                os = resolver.openOutputStream(insertUri);
+                if (os != null) {
+                    inputStream = new FileInputStream(ringtoneFile);
+                    byte[] bytes = new byte[1024];
+                    int len = 0;
+                    while ((len = inputStream.read(bytes)) != -1) {
+                        os.write(bytes, 0, len);
+                    }
+                    inputStream.close();
+                    os.close();
+                }
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+        RingtoneManager.setActualDefaultRingtoneUri(this, type, insertUri);
+        Log.d(TAG, "insertUri: " + insertUri);
+        Toast.makeText(this, "铃声设置完成", Toast.LENGTH_SHORT).show();
+    }
+
+    private String getFilePathFromContentUri(Uri selectedUri, ContentResolver contentResolver) {
+        String filePath;
+
+        String[] filePathColumn = {MediaStore.MediaColumns.DATA};
+
+        Cursor cursor = contentResolver.query(selectedUri, filePathColumn, null, null, null);
+
+        cursor.moveToFirst();
+
+        int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+
+        filePath = cursor.getString(columnIndex);
+
+        cursor.close();
+
+        return filePath;
+
+    }
 }
