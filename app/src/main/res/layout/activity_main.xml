@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="act"
+            type="com.example.ringtone.MainActivity" />
+    </data>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="10dp"
+            tools:context=".MainActivity">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="Android 自定义铃声测试项目"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <Button
+                android:id="@+id/btn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:onClick="@{() -> act.setRingtone()}"
+                android:text="设置来电铃声" />
+
+            <Button
+                android:id="@+id/btn_message"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:onClick="@{() -> act.setMessage()}"
+                android:text="设置通知铃声" />
+
+            <Button
+                android:id="@+id/btn_alarm"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:onClick="@{() -> act.setAlarm()}"
+                android:text="设置闹钟铃声" />
+
+            <Button
+                android:id="@+id/btn_all"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:onClick="@{() -> act.setAll()}"
+                android:text="设置所有铃声" />
+
+            <Button
+                android:id="@+id/requestWriteSettings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:onClick="@{() -> act.requestWriteSettings()}"
+                android:text="requestWriteSettings" />
+
+        </LinearLayout>
+    </ScrollView>
+
+
+</layout>
