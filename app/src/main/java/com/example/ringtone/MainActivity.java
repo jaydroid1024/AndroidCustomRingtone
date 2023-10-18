@@ -162,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public String getRingFileName() {
-        return fileList.get(0).replace(".mp3", "");
+        return fileList.get(0).replace(".mp3", "") + "_time_" + System.currentTimeMillis();
     }
 
     public boolean isNeedRequestWriteSettings() {
